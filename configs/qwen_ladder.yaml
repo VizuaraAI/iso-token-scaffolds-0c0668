@@ -1,0 +1,64 @@
+# The real experiment: the 7B / 32B comparison at matched total token cost.
+#
+# Budget before you launch. With GSM8K at 500 examples, self-consistency at
+# k=32 is 16,000 generations for that one cell alone. Start with limit: 100
+# and a truncated budget list, confirm the curves have the shape you expect,
+# then scale up.
+#
+# The 14B rung is not decoration. "Scaffold the 7B" versus "just use the 14B"
+# is the comparison an operator actually faces, and the 8B-versus-33B framing
+# hides it.
+
+datasets:
+  - name: gsm8k
+    split: test
+    limit: 200
+  - name: math500
+    limit: 200
+  - name: hotpotqa
+    split: validation
+    limit: 200
+
+models:
+  - name: small
+    backend:
+      kind: vllm
+      model: Qwen/Qwen2.5-7B-Instruct
+      max_tokens: 1024
+  - name: mid
+    backend:
+      kind: vllm
+      model: Qwen/Qwen2.5-14B-Instruct
+      max_tokens: 1024
+  - name: large
+    backend:
+      kind: vllm
+      model: Qwen/Qwen2.5-32B-Instruct
+      max_tokens: 1024
+
+retrieval:
+  kind: bm25
+  pool:
+    dataset: gsm8k
+    split: train      # training split ONLY, never the test split
+    limit: 2000
+
+scaffolds:
+  - name: greedy_cot
+    budgets: [1]
+  - name: self_consistency
+    budgets: [1, 2, 4, 8, 16, 32]
+  - name: best_of_n
+    budgets: [1, 2, 4, 8, 16, 32]
+  - name: self_refine
+    budgets: [1, 2, 3]
+  - name: retrieved_scaffold
+    budgets: [1, 2, 4, 8]
+  - name: retrieved_plus_sc
+    budgets: [1, 2, 4]
+
+cost:
+  input_weight: 0.25
+
+output:
+  results: results/qwen_ladder.jsonl

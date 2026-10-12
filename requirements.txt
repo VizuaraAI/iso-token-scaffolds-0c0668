@@ -1,0 +1,21 @@
+# Core harness. Everything here runs the mock backend on a laptop.
+numpy>=2.1
+pyyaml>=6.0
+matplotlib>=3.9
+tqdm>=4.66
+datasets>=3.2
+rank-bm25>=0.2.2
+
+# Serving and models. Install these when you move to a GPU.
+# vllm pins its own torch build, so install it first and let it choose.
+torch>=2.5
+transformers>=4.48
+accelerate>=1.3
+vllm>=0.7.0
+openai>=1.60
+
+# Dense retrieval for the retriever-quality ablation.
+sentence-transformers>=3.4
+
+# Optional, for notebooks and quick tables.
+pandas>=2.2

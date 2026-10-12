@@ -1,0 +1,48 @@
+# Default sweep configuration.
+#
+# This one runs entirely on the mock backend against an offline synthetic set,
+# so it finishes in seconds on a laptop and proves the harness is wired up.
+# Switch to configs/qwen_ladder.yaml once you have a GPU.
+
+datasets:
+  - name: synthetic
+    limit: 40
+
+models:
+  # "small" and "large" are the names the analysis reads. Keep them.
+  - name: small
+    backend:
+      kind: mock
+      model: mock-small
+      skill: 0.52
+      max_tokens: 512
+  - name: large
+    backend:
+      kind: mock
+      model: mock-large
+      skill: 0.66
+      max_tokens: 512
+
+retrieval:
+  kind: bm25        # bm25 | dense | oracle | null
+  pool:
+    dataset: synthetic
+    limit: 60
+
+scaffolds:
+  - name: greedy_cot
+    budgets: [1]
+  - name: self_consistency
+    budgets: [1, 2, 4, 8, 16]
+  - name: self_refine
+    budgets: [1, 2, 3]
+  - name: retrieved_scaffold
+    budgets: [1, 2, 4, 8]
+
+# The input-token weight for the price-weighted cost model. Sweep this in the
+# ablation: the value at which a scaffold's margin changes sign is a result.
+cost:
+  input_weight: 0.25
+
+output:
+  results: results/sweep.jsonl
